@@ -1,0 +1,73 @@
+apiVersion: v1 # Kubernetes API version
+kind: Service # Kubernetes resource kind we are creating
+metadata: # Metadata of the resource kind we are creating
+  name: eis-mock-service
+spec:
+  selector:
+    app: eis-mock
+  ports:
+    - protocol: "TCP"
+      port: 8080 # The port that the service is running on in the cluster
+      targetPort: 8080 # The port exposed by the service
+  type: LoadBalancer
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: eis-mock
+  name: eis-mock-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eis-mock
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: eis-mock
+    spec:
+      containers:
+        - image: ashishdocker0/eis-mock:4.0
+          name: eis-mock
+          ports:
+            - containerPort: 8080
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: couchbase-config-map
+                  key: hostname
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: couchbase-config-map
+                  key: bucket-name
+            - name: COUCHBASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: couchbase-secret
+                  key: username
+            - name: COUCHBASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: couchbase-secret
+                  key: couchbase-password
+            - name: AUTH_COLLECTION_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: couchbase-config-map
+                  key: auth-collection-name
+            - name: INVOICE_COLLECTION_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: couchbase-config-map
+                  key: invoice-collection-name
+            - name: COUCHBASE_SCOPE
+              valueFrom:
+                configMapKeyRef:
+                  name: couchbase-config-map
+                  key: couchbase-scope
